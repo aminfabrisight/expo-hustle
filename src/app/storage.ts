@@ -12,6 +12,7 @@ export interface Saved {
   bestTitle: string;
   runs: number;
   achievements: string[];
+  playerName: string;
 }
 
 const defaults = (): Saved => ({
@@ -23,6 +24,7 @@ const defaults = (): Saved => ({
   bestTitle: '',
   runs: 0,
   achievements: [],
+  playerName: '',
 });
 
 export function load(): Saved {

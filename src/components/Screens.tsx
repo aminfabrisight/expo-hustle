@@ -6,12 +6,22 @@ import type { Achievement, ScoreBreakdown, Title } from '../systems/score';
 import type { GameState } from '../systems/state';
 import type { ArchetypeId } from '../systems/types';
 import { HowTo } from './Panels';
+import { Leaderboard } from './Leaderboard';
+import { NAME_MAX, cleanName } from '../app/leaderboard';
 
 export function TitleScreen(props: {
-  arch: ArchetypeId; best: number; bestTitle: string; sound: boolean; reducedMotion: boolean;
-  onArch: (a: ArchetypeId) => void; onPlay: () => void; onToggleSound: () => void; onToggleMotion: () => void;
+  arch: ArchetypeId; best: number; bestTitle: string; sound: boolean; reducedMotion: boolean; name: string;
+  onArch: (a: ArchetypeId) => void; onPlay: () => void; onToggleSound: () => void; onToggleMotion: () => void; onName: (n: string) => void;
 }) {
   const [about, setAbout] = useState(false);
+  const [board, setBoard] = useState(false);
+  const [nameError, setNameError] = useState(false);
+  const play = () => {
+    const n = cleanName(props.name);
+    if (!n) { setNameError(true); document.getElementById('player-name')?.focus(); return; }
+    if (n !== props.name) props.onName(n);
+    props.onPlay();
+  };
   return (
     <div className="title-screen">
       <div className="title-inner">
@@ -26,7 +36,17 @@ export function TitleScreen(props: {
             <li><span>🤲</span> Press E at booths for freebies &amp; chats</li>
             <li><span>⏱</span> Chase timed goodies before the crowd does</li>
           </ol>
-          <button className="btn play" onClick={props.onPlay} autoFocus>PLAY</button>
+          <form className="name-form" onSubmit={(e) => { e.preventDefault(); play(); }}>
+            <label htmlFor="player-name">Name on your badge</label>
+            <input
+              id="player-name" type="text" autoComplete="nickname" maxLength={NAME_MAX} placeholder="e.g. Amin"
+              value={props.name} aria-invalid={nameError} aria-describedby="name-hint"
+              onChange={(e) => { props.onName(e.target.value); if (nameError) setNameError(false); }}
+              autoFocus={!props.name}
+            />
+            <small id="name-hint" className={nameError ? 'err' : ''}>{nameError ? 'Add a name so we can put you on the leaderboard.' : 'Shown on the shared leaderboard.'}</small>
+            <button type="submit" className="btn play" autoFocus={!!props.name}>PLAY</button>
+          </form>
           {props.best > 0 && <div className="best">Best: <b>{props.best.toLocaleString()}</b>{props.bestTitle && <> · {props.bestTitle}</>}</div>}
         </div>
 
@@ -49,8 +69,10 @@ export function TitleScreen(props: {
         <div className="title-toggles">
           <button className="btn ghost" onClick={props.onToggleSound}>Sound: {props.sound ? 'On' : 'Off'}</button>
           <button className="btn ghost" onClick={props.onToggleMotion}>Reduced motion: {props.reducedMotion ? 'On' : 'Off'}</button>
+          <button className="btn ghost" onClick={() => setBoard((v) => !v)}>{board ? 'Hide leaderboard' : 'Leaderboard'}</button>
           <button className="btn ghost" onClick={() => setAbout((v) => !v)}>{about ? 'Hide' : 'How to play & sponsors'}</button>
         </div>
+        {board && <div className="title-board"><Leaderboard myName={props.name} limit={10} /></div>}
         {about && (
           <div className="about">
             <HowTo />
@@ -107,7 +129,10 @@ export interface ReportData {
   unlocked: string[];
 }
 
-export function ResultsScreen({ s, r, onReplay, onTitle }: { s: GameState; r: ReportData; onReplay: () => void; onTitle: () => void }) {
+export function ResultsScreen({ s, r, onReplay, onTitle, playerName, lb }: {
+  s: GameState; r: ReportData; onReplay: () => void; onTitle: () => void;
+  playerName: string; lb: { pending: boolean; id: number | null; error: string | null; retry?: () => void };
+}) {
   const [copied, setCopied] = useState('');
   const st = s.stats;
   const lines: [string, string | number][] = [
@@ -142,7 +167,7 @@ export function ResultsScreen({ s, r, onReplay, onTitle }: { s: GameState; r: Re
         <div className="report badge-card">
           <div className="badge-hole" aria-hidden />
           <div className="report-stripe">ATTENDEE · {s.arch.name.toUpperCase()}</div>
-          <div className="report-name">YOU</div>
+          <div className="report-name">{playerName || 'YOU'}</div>
           <div className="report-title">{r.title.title}</div>
           <p className="report-caption">{r.title.caption}</p>
           <div className="report-score">
@@ -168,6 +193,7 @@ export function ResultsScreen({ s, r, onReplay, onTitle }: { s: GameState; r: Re
           </div>
           {copied && <div className="muted small">{copied}</div>}
           {copied.startsWith('Select') && <textarea id="share-text" className="share-text" readOnly value={shareText} />}
+          <Leaderboard highlightId={lb.id} myName={playerName} pending={lb.pending} saveError={lb.error} onRetrySave={lb.retry} />
           <h3>Achievements {r.unlocked.length}/{r.allAch.length}</h3>
           <div className="ach-grid">
             {r.allAch.map((a) => {

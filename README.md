@@ -43,6 +43,7 @@ Score = **Loot** (swag + snacks) + **Influence** (connections, leads, party invi
 - ~70 wandering NPCs (more at lunch) with flow-field pathfinding, crowd slow-down, emotes, rumor-spreaders.
 - Event director scheduling roughly 10–15 surprises per round on a deliberate day curve (the closing frenzy hits three booths at once): Great Charcuterie Dash (with Cheese Betrayal crackers), Free Beer Stampede (beer or mocktail), Swag Drop, Lunch Mirage, Pizza Drop, Espresso Cart, Badge Scanner Ambush, Incognito CEO, Booth Celebrity, Fake VIP Lounge, Demo Blitz, Last 30-Minute Frenzy, plus a Last Day Gold Rush run modifier, salesperson traps, the expo shuttle and non-sequential booth numbering (the Endless Aisle).
 - Five archetypes, prize-wheel timing mini-game, relationship journal, 12 ending titles, 16 achievements, local best score, Web Share / copy-to-clipboard.
+- **Shared leaderboard**: players enter a name on the title screen (remembered in the browser). Each finished run saves name, score, title and attendee type; the results screen (and a Leaderboard button on the title screen) shows everyone's best run.
 - First-run playable tutorial (move, grab coffee, sprint, chase a timed charcuterie dash).
 - Procedural WebAudio sound effects, reduced-motion mode, pause on tab blur, keyboard + touch controls.
 
@@ -70,14 +71,22 @@ The simulation in `systems/` has no DOM access: it's deterministic for a given s
 - **FabriSight**: the booth uses plain-text branding (no logo invented). Interacting turns on "Crowd Vision" for 8 seconds: a fictional heat map and detection boxes over the in-game crowd, labeled as simulated. Add an official logo URL and a site link in `sponsors.json` if wanted.
 - **Art**: all visuals are procedural canvas drawings and emoji. `src/assets/assets.ts` is the swap point for item icons; characters, booths and fixtures live in `renderer.ts` methods (`person`, `drawBooth`, `drawFixture`) so they can be replaced with sprites one at a time.
 
+## Leaderboard
+
+Runs are stored in the `expo_leaderboard` table of the Supabase project **TradeShow** and read/written straight from the browser over Supabase's REST API (`src/app/leaderboard.ts`, UI in `src/components/Leaderboard.tsx`). Row-level security allows reading and inserting only; the table rejects bad data (name 1–20 chars, score 0–20,000, known attendee types). Point the game at another project with `VITE_SUPABASE_URL` / `VITE_SUPABASE_KEY`.
+
+To clear the board (e.g. before an event), run `delete from expo_leaderboard;` in the Supabase SQL editor. On Supabase's free plan a project pauses after about a week with no activity; restore it from the Supabase dashboard if the board stops loading.
+
+Scores are calculated in the player's browser, so a determined person could post a fake score. Fine for a fun office leaderboard; not suitable for prizes without server-side checks.
+
 ## Privacy & fairness
 
-No accounts, analytics, ads or network calls beyond Google Fonts. Badge scans, crowd analytics, rumors and ticker messages are all simulated game content. Settings, best score and achievements live in your browser's localStorage only.
+No accounts, analytics or ads. Network calls: Google Fonts and the leaderboard (only the name a player types, their score, title and attendee type). Badge scans, crowd analytics, rumors and ticker messages are all simulated game content. Settings, best score and achievements live in your browser's localStorage only.
 
 ## Known limitations / deferred (M4)
 
 - The after-hours VIP party is a celebratory interstitial with bonus points, not a playable level yet.
-- Leaderboards are local only (no backend adapter yet); no live/multiplayer events.
+- No live/multiplayer events.
 - Phone battery, daily challenges, friends' hints and custom expo maps are not implemented. Bathrooms exist via the coffee bladder meter.
 - The shareable report card is text (Web Share / clipboard), not a generated PNG.
 - Emoji rendering depends on the device's emoji font.

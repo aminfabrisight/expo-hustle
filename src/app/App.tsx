@@ -12,6 +12,7 @@ import { BagPanel, JournalPanel, MapPanel, PauseMenu } from '../components/Panel
 import { PartyScreen, ResultsScreen, TitleScreen, type ReportData } from '../components/Screens';
 import { TouchControls } from '../components/Touch';
 import { load, save, type Saved } from './storage';
+import { cleanName, submitScore, type NewEntry } from './leaderboard';
 
 type Screen = 'title' | 'playing' | 'party' | 'results';
 type PanelKind = null | 'bag' | 'journal' | 'map' | 'pause';
@@ -25,6 +26,8 @@ export default function App() {
   const [report, setReport] = useState<ReportData | null>(null);
   const [touch, setTouch] = useState(isTouchDevice);
   const [runId, setRunId] = useState(0);
+  // Leaderboard save state for the run just finished.
+  const [lb, setLb] = useState<{ pending: boolean; id: number | null; error: string | null; entry: NewEntry | null }>({ pending: false, id: null, error: null, entry: null });
   const [, force] = useReducer((x: number) => x + 1, 0);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -79,9 +82,22 @@ export default function App() {
     });
     setPanel(null);
     setScreen(s.invites.length > 0 ? 'party' : 'results');
+    // Post the run to the shared leaderboard (score + earned title).
+    void saveToBoard({ name: sv.playerName, score: score.total, title: title.title, archetype: s.arch.id });
   }, [persist]);
 
+  async function saveToBoard(entry: NewEntry) {
+    setLb({ pending: true, id: null, error: null, entry });
+    try {
+      const row = await submitScore(entry);
+      setLb({ pending: false, id: row?.id ?? null, error: null, entry });
+    } catch (e) {
+      setLb({ pending: false, id: null, error: e instanceof Error ? e.message : 'network error', entry });
+    }
+  }
+
   const startRun = useCallback(() => {
+    if (!cleanName(savedRef.current.playerName)) { setScreen('title'); return; }
     audioRef.current.unlock();
     const s = createGame(randomSeed(), savedRef.current.archetype, { tutorial: !savedRef.current.tutorialDone });
     stateRef.current = s;
@@ -167,6 +183,8 @@ export default function App() {
     return (
       <TitleScreen
         arch={saved.archetype} best={saved.best} bestTitle={saved.bestTitle} sound={saved.sound} reducedMotion={saved.reducedMotion}
+        name={saved.playerName}
+        onName={(n: string) => persist({ playerName: n })}
         onArch={(a: ArchetypeId) => persist({ archetype: a })}
         onPlay={startRun}
         onToggleSound={() => persist({ sound: !saved.sound })}
@@ -175,7 +193,15 @@ export default function App() {
     );
   }
   if (screen === 'party' && s) return <PartyScreen s={s} reduced={saved.reducedMotion} onContinue={() => setScreen('results')} />;
-  if (screen === 'results' && s && report) return <ResultsScreen s={s} r={report} onReplay={startRun} onTitle={() => setScreen('title')} />;
+  if (screen === 'results' && s && report) {
+    return (
+      <ResultsScreen
+        s={s} r={report} onReplay={startRun} onTitle={() => setScreen('title')}
+        playerName={saved.playerName}
+        lb={{ pending: lb.pending, id: lb.id, error: lb.error, retry: lb.entry ? () => void saveToBoard(lb.entry!) : undefined }}
+      />
+    );
+  }
 
   const input = inputRef.current;
   const primary = s?.context?.actions.find((a) => a.enabled);
