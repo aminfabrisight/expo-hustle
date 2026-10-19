@@ -378,7 +378,25 @@ h1, h2, h3 { text-wrap: balance; }
 .name-form input[aria-invalid='true'] { border-color: var(--hot); }
 .name-form small { font-size: 13px; color: var(--paper-muted); margin-bottom: 10px; }
 .name-form small.err { color: #c0284a; font-weight: 700; }
-.title-board { width: min(560px, 100%); }
+/* Title screen: badge + choices on the left, Top 10 on the right (laptops);
+   on narrow screens the Top 10 sits right under the PLAY badge. */
+.title-layout {
+  max-width: 1200px; display: grid; gap: 18px 28px; align-items: start;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "hero" "board" "arch" "more";
+}
+.t-hero { grid-area: hero; display: flex; flex-direction: column; align-items: center; min-width: 0; }
+.t-board { grid-area: board; width: min(560px, 100%); justify-self: center; min-width: 0; }
+.title-layout > .arch-pick { grid-area: arch; }
+.t-more { grid-area: more; display: flex; flex-direction: column; align-items: center; gap: 14px; min-width: 0; }
+.t-board .leaderboard { margin: 0; }
+@media (min-width: 1000px) {
+  .title-layout {
+    grid-template-columns: minmax(0, 1fr) 360px;
+    grid-template-areas: "hero board" "arch board" "more board";
+  }
+  .t-board { width: 100%; position: sticky; top: calc(24px + env(safe-area-inset-top, 0px)); padding-top: 22px; }
+}
 
 .leaderboard { background: var(--panel); border: 2px solid var(--line); border-radius: 14px; padding: 10px 12px 12px; margin: 14px 0; }
 .lb-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
@@ -434,3 +452,5 @@ h1, h2, h3 { text-wrap: balance; }
 @keyframes fall { to { transform: translateY(110vh) rotate(720deg); } }
 :root[data-motion='reduced'] *, :root[data-motion='reduced'] *::before, :root[data-motion='reduced'] *::after { animation: none !important; transition: none !important; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition: none !important; } }
+/* In the title-screen Top 10, let the earned title wrap instead of being cut off. */
+.t-board .lb-who small { white-space: normal; overflow: visible; line-height: 1.2; }

@@ -14,7 +14,6 @@ export function TitleScreen(props: {
   onArch: (a: ArchetypeId) => void; onPlay: () => void; onToggleSound: () => void; onToggleMotion: () => void; onName: (n: string) => void;
 }) {
   const [about, setAbout] = useState(false);
-  const [board, setBoard] = useState(false);
   const [nameError, setNameError] = useState(false);
   const play = () => {
     const n = cleanName(props.name);
@@ -24,7 +23,8 @@ export function TitleScreen(props: {
   };
   return (
     <div className="title-screen">
-      <div className="title-inner">
+      <div className="title-inner title-layout">
+        <div className="t-hero">
         <div className="lanyard" aria-hidden />
         <div className="hero-badge">
           <div className="badge-hole" aria-hidden />
@@ -49,6 +49,11 @@ export function TitleScreen(props: {
           </form>
           {props.best > 0 && <div className="best">Best: <b>{props.best.toLocaleString()}</b>{props.bestTitle && <> · {props.bestTitle}</>}</div>}
         </div>
+        </div>
+
+        <aside className="t-board">
+          <Leaderboard myName={props.name} limit={10} heading="Top 10 Hustlers" />
+        </aside>
 
         <div className="arch-pick" role="radiogroup" aria-label="Choose your attendee type">
           <div className="arch-label">Attendee type <span className="muted">(optional)</span></div>
@@ -66,13 +71,12 @@ export function TitleScreen(props: {
           </div>
         </div>
 
+        <div className="t-more">
         <div className="title-toggles">
           <button className="btn ghost" onClick={props.onToggleSound}>Sound: {props.sound ? 'On' : 'Off'}</button>
           <button className="btn ghost" onClick={props.onToggleMotion}>Reduced motion: {props.reducedMotion ? 'On' : 'Off'}</button>
-          <button className="btn ghost" onClick={() => setBoard((v) => !v)}>{board ? 'Hide leaderboard' : 'Leaderboard'}</button>
           <button className="btn ghost" onClick={() => setAbout((v) => !v)}>{about ? 'Hide' : 'How to play & sponsors'}</button>
         </div>
-        {board && <div className="title-board"><Leaderboard myName={props.name} limit={10} /></div>}
         {about && (
           <div className="about">
             <HowTo />
@@ -82,9 +86,10 @@ export function TitleScreen(props: {
                 <li key={sp.id}><b>{sp.name}</b> <span className="sponsor-pill">{sp.sponsor?.label}</span> {sp.sponsor?.description}</li>
               ))}
             </ul>
-            <p className="muted small">Everything here is fictional game fun: crowds, tickers, badge scans and "analytics" are simulated. No personal data is collected; your best score stays in this browser.</p>
+            <p className="muted small">Everything here is fictional game fun: crowds, tickers, badge scans and "analytics" are simulated. The leaderboard stores only the name you type, your score, title and attendee type.</p>
           </div>
         )}
+        </div>
       </div>
     </div>
   );

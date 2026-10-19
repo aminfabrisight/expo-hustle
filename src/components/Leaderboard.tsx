@@ -10,13 +10,14 @@ type Status = 'loading' | 'ready' | 'error';
  * `highlightId` marks the run just played; `myName` marks the viewer's own best row.
  * `pending` keeps it in "saving" state until the just-played run has been written.
  */
-export function Leaderboard({ highlightId, myName, pending, saveError, onRetrySave, limit = 25 }: {
+export function Leaderboard({ highlightId, myName, pending, saveError, onRetrySave, limit = 25, heading = 'Leaderboard' }: {
   highlightId?: number | null;
   myName?: string;
   pending?: boolean;
   saveError?: string | null;
   onRetrySave?: () => void;
   limit?: number;
+  heading?: string;
 }) {
   const [rows, setRows] = useState<LeaderRow[]>([]);
   const [status, setStatus] = useState<Status>('loading');
@@ -42,7 +43,7 @@ export function Leaderboard({ highlightId, myName, pending, saveError, onRetrySa
   return (
     <section className="leaderboard" aria-label="Leaderboard">
       <div className="lb-head">
-        <h3>Leaderboard</h3>
+        <h3>{heading}</h3>
         <button className="link-btn" onClick={() => void load()} disabled={status === 'loading' || pending}>Refresh</button>
       </div>
       <p className="muted small lb-sub">Everyone's best run. Ties go to whoever got there first.</p>
