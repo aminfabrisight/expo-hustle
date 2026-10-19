@@ -1,0 +1,52 @@
+{
+  "_comment": "Sponsor placements. All sponsors here are fictional samples except FabriSight. Fields are validated by src/content/sponsors.ts. url must be https; leave empty to hide the Learn More link. logoUrl is optional (official assets only).",
+  "sponsors": [
+    {
+      "id": "fabrisight",
+      "displayName": "FabriSight",
+      "hall": "C",
+      "island": true,
+      "colors": ["#0f2b46", "#5fe1ff"],
+      "tagline": "See what the crowd is doing.",
+      "description": "FabriSight makes AI camera systems for factory and production lines. In this game, its booth shows a fictional heat map of in-game crowds for a few seconds. No real people are tracked.",
+      "url": "",
+      "logoUrl": "",
+      "special": "fabrisight",
+      "freebie": ["sticker", "coffee"],
+      "aggression": 0,
+      "label": "Sponsored"
+    },
+    {
+      "id": "brewtiful",
+      "displayName": "Brewtiful Coffee Co.",
+      "hall": "A",
+      "island": false,
+      "colors": ["#4a2c1a", "#ffd9a0"],
+      "tagline": "Sponsored caffeine. Same buzz, better cups.",
+      "description": "A sample sponsor. Its coffee has the same game value as any other coffee.",
+      "url": "",
+      "freebie": ["coffee", "cookie"],
+      "freebieStock": 8,
+      "restockSec": 18,
+      "aggression": 0.1,
+      "label": "Sponsored"
+    },
+    {
+      "id": "lumenlogistics",
+      "displayName": "Lumen Logistics",
+      "hall": "B",
+      "island": true,
+      "colors": ["#ff4d6d", "#fff0f3"],
+      "tagline": "Ask about our after-hours happy hour.",
+      "description": "A sample sponsor that hosts a sponsored after-hours happy hour (mocktails available).",
+      "url": "",
+      "freebie": ["tote", "candy"],
+      "freebieStock": 3,
+      "restockSec": 60,
+      "aggression": 0.3,
+      "party": "sponsored",
+      "wheel": true,
+      "label": "Sponsored"
+    }
+  ]
+}
